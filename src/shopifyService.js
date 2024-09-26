@@ -3,10 +3,20 @@
 const shopifyDomain = '67f1af-72.myshopify.com'; // Replace with your Shopify store's domain
 const storefrontAccessToken = '1ffcdb0a1355b0cdddd1558499c95278'; // Replace with your actual API token
 
+// Function to convert query array to GraphQL filter string
+const buildGraphQLQueryString = (query) => {
+    return query.map(filter => filter.tag).join(" ");
+};
+
 // GraphQL query to fetch products based on a search query
-const fetchProducts = async (query) => {
+// src/shopifyService.js
+export const fetchProducts = async (query) => {
     try {
-        const response = await fetch(`https://${shopifyDomain}/api/2023-01/graphql.json`, {
+        const queryString = buildGraphQLQueryString(query);
+        
+        console.log('queryString: ', queryString);
+
+        const response = await fetch(`https://${shopifyDomain}/api/2024-01/graphql.json`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -15,13 +25,14 @@ const fetchProducts = async (query) => {
             body: JSON.stringify({
                 query: `
           {
-            products(first: 5) {
+            products(first: 50, query: "tag:${queryString}") {
               edges {
                 node {
                   id
                   title
                   description
                   handle
+                  tags
                   images(first: 1) {
                     edges {
                       node {
@@ -30,16 +41,15 @@ const fetchProducts = async (query) => {
                     }
                   }
                   variants(first: 1) {
-  edges {
-    node {
-      priceV2 {
-        amount
-        currencyCode
-      }
-    }
-  }
-}
-                  
+                    edges {
+                      node {
+                        priceV2 {
+                          amount
+                          currencyCode
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -72,6 +82,3 @@ const fetchProducts = async (query) => {
         return [];
     }
 };
-
-
-export {fetchProducts};
