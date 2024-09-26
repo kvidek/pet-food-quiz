@@ -100,3 +100,34 @@ button:hover {
     margin: 0 auto;
     margin-bottom: 30px;
 }
+
+.product-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.product {
+    display: flex;
+    border: 1px solid black;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.product-left {
+    padding-right: 20px;
+    max-width: 180px;
+    width: 100%;
+}
+
+.product-left img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.product-right {
+    width: 100%;
+    text-align: left;
+    padding-left: 20px;
+}

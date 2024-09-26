@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {fetchProducts} from '../shopifyService';
 
-const Results = () => {
-    const [quizData, setQuizData] = useState(null);
+const Results = ({quizData}) => {
     const navigate = useNavigate();
+    const [products, setProducts] = useState([]);
 
     // Function to go back to the last step
     const handleBack = () => {
@@ -21,46 +22,72 @@ const Results = () => {
     };
 
     useEffect(() => {
-        const storedData = localStorage.getItem('quizData');
-        if (storedData) {
-            setQuizData(JSON.parse(storedData));
-        } else {
-            // Redirect to quiz if no data is found
-            navigate('/');
-        }
-    }, [navigate]);
+        // Build a query based on the quiz data
+        const buildProductQuery = () => {
+            let query = "cat food";
+            //
+            // if (quizData.age < 1) {
+            //     query += " kitten";
+            // } else if (quizData.age > 10) {
+            //     query += " senior";
+            // }
+            //
+            // if (quizData.breed === "Maine Coon") {
+            //     query += " large breed";
+            // }
+            //
+            // if (quizData.allergies.includes("grain")) {
+            //     query += " grain-free";
+            // }
 
-    const recommendFood = () => {
-        if (!quizData) return '';
+            return query;
+        };
 
-        const {age, weight, foodPreferences, allergies} = quizData;
+        // Fetch products from Shopify
+        const productQuery = buildProductQuery();
 
-        let recommendation = 'Balanced Diet ';
-
-        if (age < 1) {
-            recommendation += 'with more Protein for kittens';
-        } else if (age > 8) {
-            recommendation += 'with focus on Joint Health for seniors';
-        }
-
-        if (weight > 5) {
-            recommendation += ', Low-calorie food for weight management';
-        }
-
-        if (allergies) {
-            recommendation += `, Avoid products with ${allergies}`;
-        }
-
-        recommendation += `, Preferred taste: ${foodPreferences}`;
-        return recommendation;
-    };
+        fetchProducts(productQuery).then(setProducts);
+    }, [quizData]);
 
     return (
         <div>
             {quizData ? (
                 <div className="quiz-results">
                     <h2>Recommended Food for {quizData.name}</h2>
-                    <p>{recommendFood()}</p>
+
+                    {products.length > 0 ? (
+                        <ul className="produc-list">
+                            {products.map((product) => {
+                                console.log('product: ', product);
+
+                                return (
+                                    <li className="product" key={product.id}>
+                                        <div className="product-left">
+                                            <img src={product.images.edges[0]?.node.src} alt={product.title}/>
+                                        </div>
+                                        <div className="product-right">
+                                            <h4>{product.title}</h4>
+                                            <p>{product.description}</p>
+                                            {product.variants?.edges.length > 0 ? (
+                                                <p>
+                                                    Price: {product.variants.edges[0]?.node?.priceV2?.amount} {product.variants.edges[0]?.node?.priceV2?.currencyCode}
+                                                </p>
+                                            ) : (
+                                                <p>No price available</p>
+                                            )}
+                                            <a href={`/products/${product.handle}`} target="_blank"
+                                               rel="noopener noreferrer">
+                                                View Product
+                                            </a>
+                                        </div>
+                                    </li>
+                                )
+                            })}
+                        </ul>
+
+                    ) : (
+                        <p>Loading recommended products...</p>
+                    )}
 
                     <div className="buttons">
                         <button onClick={handleBack}>
