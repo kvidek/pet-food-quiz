@@ -1,11 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 
 const QuizSteps = () => {
     const {stepNumber} = useParams();
     const navigate = useNavigate();
 
-    const initialData = [
+    const initialData = useMemo(() => [
         {
             name: '',
             age: '',
@@ -15,7 +15,7 @@ const QuizSteps = () => {
             allergies: '',
             foodPreferences: ''
         }
-    ];
+    ], []);
 
     const [quizData, setQuizData] = useState(() => {
         const storedData = localStorage.getItem('quizData');
@@ -27,7 +27,7 @@ const QuizSteps = () => {
             setQuizData(initialData);
         }
         localStorage.setItem('quizData', JSON.stringify(quizData));
-    }, [quizData]);
+    }, [quizData, initialData]);
 
     const handleInputChange = (index, e) => {
         const {name, value} = e.target;
