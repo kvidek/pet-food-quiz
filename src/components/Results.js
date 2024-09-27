@@ -22,6 +22,9 @@ const Results = () => {
 
     // Function to handle quantity change
     const handleQuantityChange = (productId, newQuantity) => {
+        if (newQuantity < 1) {
+            newQuantity = 1;
+        }
         setQuantities(prevQuantities => ({
             ...prevQuantities,
             [productId]: newQuantity
@@ -112,59 +115,73 @@ const Results = () => {
                 <h2>Recommended Food for {catName}</h2>
 
                 {products.length > 0 ? (
-                    <ul className="product-list">
-                        {products.map((product) => {
+                    <>
+                        <ul className="product-list">
+                            {products.map((product) => {
 
-                            const productPrice = product.variants.edges[0]?.node?.priceV2?.amount;
-                            const totalPerProduct = productPrice * quantities[product.id];
+                                const productPrice = product.variants.edges[0]?.node?.priceV2?.amount;
+                                const totalPerProduct = productPrice * quantities[product.id];
 
-                            return (
-                                <li className="product" key={product.id}>
-                                    <div className="product-left">
-                                        <img src={product.images.edges[0]?.node.src} alt={product.title}/>
-                                    </div>
-                                    <div className="product-right">
-                                        <h4>{product.title}</h4>
-                                        <p>{product.description}</p>
-                                        {product.variants?.edges.length > 0 ? (
-                                            <p>
-                                                Price: {productPrice} {product.variants.edges[0]?.node?.priceV2?.currencyCode}
+                                return (
+                                    <li className="product" key={product.id}>
+                                        <div className="product-left">
+                                            <img src={product.images.edges[0]?.node.src} alt={product.title}/>
+                                        </div>
+                                        <div className="product-center">
+                                            <h2>{product.title}</h2>
+                                            <p>{product.description}</p>
+                                            {product.variants?.edges.length > 0 ? (
+                                                <p>
+                                                    Price: <b>{productPrice} {product.variants.edges[0]?.node?.priceV2?.currencyCode}</b>
+                                                </p>
+                                            ) : (
+                                                <p>No price available</p>
+                                            )}
+                                        </div>
+                                        <div className="product-right">
+                                            <label className="quantity">
+                                                <span>Qty:</span>
+                                                <div className="quantity-input">
+                                                    <button className="button button-small"
+                                                            onClick={() => handleQuantityChange(product.id, quantities[product.id] - 1)}>-
+                                                    </button>
+                                                    <input
+                                                        type="text"
+                                                        value={quantities[product.id]}
+                                                        onChange={(e) => handleQuantityChange(product.id, Number(e.target.value))}
+                                                    />
+                                                    <button className="button button-small"
+                                                            onClick={() => handleQuantityChange(product.id, quantities[product.id] + 1)}>+
+                                                    </button>
+                                                </div>
+                                            </label>
+                                            <p>Total: <b>{totalPerProduct.toFixed(2)} {product.variants.edges[0]?.node.priceV2.currencyCode}</b>
                                             </p>
-                                        ) : (
-                                            <p>No price available</p>
-                                        )}
-                                        <a href={`/products/${product.handle}`} target="_blank"
-                                           rel="noopener noreferrer">
-                                            View Product
-                                        </a>
-                                    </div>
-                                    <label>
-                                        Quantity:
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            value={quantities[product.id]}
-                                            onChange={(e) => handleQuantityChange(product.id, Number(e.target.value))}
-                                        />
-                                    </label>
-                                    <p>Total: {totalPerProduct.toFixed(2)} {product.variants.edges[0]?.node.priceV2.currencyCode}</p>
+                                        </div>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                        <div className="cart-total">
+                            <p>Order total: <b>
+                                {products.reduce((acc, product) => acc + product.variants.edges[0]?.node.priceV2.amount * quantities[product.id], 0).toFixed(2)}
+                                {products[0].variants.edges[0]?.node.priceV2.currencyCode}
+                            </b></p>
 
-                                </li>
-                            );
-                        })}
-                    </ul>
+                        </div>
+                    </>
                 ) : (
                     <p>Loading recommended products...</p>
                 )}
 
                 <div className="buttons">
-                    <button onClick={handleBack}>Back</button>
-                    <button onClick={handleRestart}>Restart Quiz</button>
+                    <button className="button button-bordered" onClick={handleBack}>Back</button>
+                    <button className="button button-bordered" onClick={handleRestart}>Restart Quiz</button>
 
                     {/* Add all to cart button */}
                     {products.length > 0 && (
                         <button onClick={handleAddToCart}>
-                            Add All to Cart
+                            Complete order
                         </button>
                     )}
                 </div>

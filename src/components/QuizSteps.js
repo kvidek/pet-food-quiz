@@ -114,7 +114,7 @@ const QuizSteps = () => {
                             onChange={handleInputChange}
                         />
                         <div className="buttons">
-                            <button onClick={prevStep}>Back</button>
+                            <button className="button button-bordered" onClick={prevStep}>Back</button>
                             <button onClick={nextStep} disabled={isNextDisabled()}>Next</button>
                         </div>
                     </div>
@@ -152,7 +152,7 @@ const QuizSteps = () => {
                             />
                         )}
                         <div className="buttons">
-                            <button onClick={prevStep}>Back</button>
+                            <button className="button button-bordered" onClick={prevStep}>Back</button>
                             <button onClick={nextStep} disabled={isNextDisabled()}>Next</button>
                         </div>
                     </div>
@@ -172,7 +172,7 @@ const QuizSteps = () => {
                             onChange={handleInputChange}
                         />
                         <div className="buttons">
-                            <button onClick={prevStep}>Back</button>
+                            <button className="button button-bordered" onClick={prevStep}>Back</button>
                             <button onClick={nextStep} disabled={isNextDisabled()}>Next</button>
                         </div>
                     </div>
@@ -193,7 +193,7 @@ const QuizSteps = () => {
                             onChange={handleInputChange}
                         />
                         <div className="buttons">
-                            <button onClick={prevStep}>Back</button>
+                            <button className="button button-bordered" onClick={prevStep}>Back</button>
                             <button onClick={nextStep}>Next</button>
                         </div>
                     </div>
@@ -214,7 +214,7 @@ const QuizSteps = () => {
                             onChange={handleInputChange}
                         />
                         <div className="buttons">
-                            <button onClick={prevStep}>Back</button>
+                            <button className="button button-bordered" onClick={prevStep}>Back</button>
                             <button onClick={submitQuiz} disabled={isNextDisabled()}>Submit</button>
                         </div>
                     </div>
