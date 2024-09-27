@@ -2,36 +2,55 @@ import React, {useState, useEffect} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
 
 const QuizSteps = () => {
-    const {stepNumber} = useParams(); // Get the current step from URL
+    const {stepNumber} = useParams();
     const navigate = useNavigate();
 
-    const initialData = {
-        name: '',
-        age: '',
-        breed: '',
-        otherBreed: '',
-        weight: '',
-        allergies: '',
-        foodPreferences: ''
-    };
+    const initialData = [
+        {
+            name: '',
+            age: '',
+            breed: '',
+            otherBreed: '',
+            weight: '',
+            allergies: '',
+            foodPreferences: ''
+        }
+    ];
 
-    // Load quiz data from localStorage, or use default initialData
     const [quizData, setQuizData] = useState(() => {
         const storedData = localStorage.getItem('quizData');
         return storedData ? JSON.parse(storedData) : initialData;
     });
 
-    // Store quiz data in localStorage whenever it changes
     useEffect(() => {
+        if (!Array.isArray(quizData)) {
+            setQuizData(initialData);
+        }
         localStorage.setItem('quizData', JSON.stringify(quizData));
     }, [quizData]);
 
-    const handleInputChange = (e) => {
+    const handleInputChange = (index, e) => {
         const {name, value} = e.target;
-        setQuizData({
-            ...quizData,
-            [name]: value
-        });
+        const updatedQuizData = [...quizData];
+        updatedQuizData[index][name] = value;
+        setQuizData(updatedQuizData);
+    };
+
+    const addPet = () => {
+        setQuizData([...quizData, {
+            name: '',
+            age: '',
+            breed: '',
+            otherBreed: '',
+            weight: '',
+            allergies: '',
+            foodPreferences: ''
+        }]);
+    };
+
+    const removePet = (index) => {
+        const updatedQuizData = quizData.filter((_, i) => i !== index);
+        setQuizData(updatedQuizData);
     };
 
     const nextStep = () => {
@@ -45,93 +64,87 @@ const QuizSteps = () => {
     };
 
     const submitQuiz = () => {
-        // Redirect to the results page
         navigate('/results');
     };
 
-    // If the cat's name is available, use it in the questions
-    const catName = quizData.name || 'your cat';
-
-    const totalSteps = 6;
-    const progress = (parseInt(stepNumber) / totalSteps) * 100;
-
-    // Validation to enable/disable "Next" button
     const isNextDisabled = () => {
-        switch (parseInt(stepNumber)) {
-            case 1:
-                return !quizData.name; // Require name
-            case 2:
-                return !quizData.age; // Require age
-            case 3:
-                if (quizData.breed === 'Other') {
-                    return !quizData.otherBreed; // Require 'other breed' if 'Other' is selected
-                }
-                return !quizData.breed; // Require breed
-            case 4:
-                return !quizData.weight; // Require weight
-            case 5:
-                return false; // Allow allergies to be empty
-            case 6:
-                return !quizData.foodPreferences; // Require food preferences
-            default:
-                return false;
-        }
+        return quizData.some(petData => {
+            switch (parseInt(stepNumber)) {
+                case 1:
+                    return !petData.name;
+                case 2:
+                    return !petData.age;
+                case 3:
+                    if (petData.breed === 'Other') {
+                        return !petData.otherBreed;
+                    }
+                    return !petData.breed;
+                case 4:
+                    return !petData.weight;
+                case 5:
+                    return false;
+                case 6:
+                    return !petData.foodPreferences;
+                default:
+                    return false;
+            }
+        });
     };
 
-    const renderStep = () => {
+    const renderStep = (index) => {
+        const petData = quizData[index];
+        const catName = petData.name || 'your cat';
+
         switch (parseInt(stepNumber)) {
             case 1:
                 return (
-                    <div className="step">
+                    <div key={index} className="step">
                         <div className="header">
-                            <p>Step 1</p>
-                            <h2>Your Cat's Name</h2>
+                            <h2>What is your cat's name?</h2>
+                            {index > 0 && (
+                                <div className="remove">
+                                    <button className="button button-bordered button-small button-error"
+                                            onClick={() => removePet(index)}>×
+                                    </button>
+                                </div>
+                            )}
                         </div>
                         <input
                             type="text"
                             name="name"
                             placeholder="Cat's Name"
-                            value={quizData.name}
-                            onChange={handleInputChange}
+                            value={petData.name}
+                            onChange={(e) => handleInputChange(index, e)}
                         />
-                        <div className="buttons">
-                            <button onClick={nextStep} disabled={isNextDisabled()}>Next</button>
-                        </div>
                     </div>
                 );
             case 2:
                 return (
-                    <div className="step">
+                    <div key={index} className="step">
                         <div className="header">
-                            <p>Step 2</p>
-                            <h2>How old is {catName}?</h2>
+                            <h2>What is {catName}'s age?</h2>
                         </div>
                         <input
                             type="number"
                             name="age"
-                            placeholder={`${catName}'s Age`}
-                            value={quizData.age}
-                            onChange={handleInputChange}
+                            placeholder="Cat's Age"
+                            value={petData.age}
+                            onChange={(e) => handleInputChange(index, e)}
                         />
-                        <div className="buttons">
-                            <button className="button button-bordered" onClick={prevStep}>Back</button>
-                            <button onClick={nextStep} disabled={isNextDisabled()}>Next</button>
-                        </div>
                     </div>
                 );
             case 3:
                 return (
-                    <div className="step">
+                    <div key={index} className="step">
                         <div className="header">
-                            <p>Step 3</p>
                             <h2>What is {catName}'s breed?</h2>
                         </div>
                         <select
                             name="breed"
-                            value={quizData.breed}
-                            placeholder="Select a breed"
-                            onChange={handleInputChange}
+                            value={petData.breed}
+                            onChange={(e) => handleInputChange(index, e)}
                         >
+                            <option value="" disabled hidden>Please select</option>
                             <option value="Persian">Persian</option>
                             <option value="Maine Coon">Maine Coon</option>
                             <option value="Siamese">Siamese</option>
@@ -140,98 +153,90 @@ const QuizSteps = () => {
                             <option value="British Shorthair">British Shorthair</option>
                             <option value="Other">Other</option>
                         </select>
-
-                        {/* Show input for 'Other' breed only if 'Other' is selected */}
-                        {quizData.breed === 'Other' && (
+                        {petData.breed === 'Other' && (
                             <input
                                 type="text"
                                 name="otherBreed"
-                                placeholder="Please specify breed"
-                                value={quizData.otherBreed}
-                                onChange={handleInputChange}
+                                placeholder="Other Breed"
+                                value={petData.otherBreed}
+                                onChange={(e) => handleInputChange(index, e)}
                             />
                         )}
-                        <div className="buttons">
-                            <button className="button button-bordered" onClick={prevStep}>Back</button>
-                            <button onClick={nextStep} disabled={isNextDisabled()}>Next</button>
-                        </div>
                     </div>
                 );
             case 4:
                 return (
-                    <div className="step">
+                    <div key={index} className="step">
                         <div className="header">
-                            <p>Step 4</p>
                             <h2>What is {catName}'s weight (kg)?</h2>
                         </div>
                         <input
                             type="number"
                             name="weight"
                             placeholder={`${catName}'s Weight`}
-                            value={quizData.weight}
-                            onChange={handleInputChange}
+                            value={petData.weight}
+                            onChange={(e) => handleInputChange(index, e)}
                         />
-                        <div className="buttons">
-                            <button className="button button-bordered" onClick={prevStep}>Back</button>
-                            <button onClick={nextStep} disabled={isNextDisabled()}>Next</button>
-                        </div>
                     </div>
                 );
             case 5:
                 return (
-                    <div className="step">
-
+                    <div key={index} className="step">
                         <div className="header">
-                            <p>Step 5</p>
                             <h2>Does {catName} have any allergies?</h2>
                         </div>
                         <input
                             type="text"
                             name="allergies"
                             placeholder="Allergies"
-                            value={quizData.allergies}
-                            onChange={handleInputChange}
+                            value={petData.allergies}
+                            onChange={(e) => handleInputChange(index, e)}
                         />
-                        <div className="buttons">
-                            <button className="button button-bordered" onClick={prevStep}>Back</button>
-                            <button onClick={nextStep}>Next</button>
-                        </div>
                     </div>
                 );
             case 6:
                 return (
-                    <div className="step">
-
+                    <div key={index} className="step">
                         <div className="header">
-                            <p>Step 6</p>
                             <h2>What are {catName}'s food preferences?</h2>
                         </div>
                         <input
                             type="text"
                             name="foodPreferences"
                             placeholder="E.g. Chicken, Fish, etc."
-                            value={quizData.foodPreferences}
-                            onChange={handleInputChange}
+                            value={petData.foodPreferences}
+                            onChange={(e) => handleInputChange(index, e)}
                         />
-                        <div className="buttons">
-                            <button className="button button-bordered" onClick={prevStep}>Back</button>
-                            <button onClick={submitQuiz} disabled={isNextDisabled()}>Submit</button>
-                        </div>
                     </div>
                 );
             default:
-                return <div>Unknown Step</div>;
+                return <div key={index}>Unknown Step</div>;
         }
     };
 
+    const progress = (parseInt(stepNumber) / 6) * 100;
+
     return (
-        <div className="quiz-steps">
-            <div className="progress" style={{width: '100%', backgroundColor: '#e0e0e0'}}>
-                <div style={{width: `${progress}%`, backgroundColor: '#000000', height: '2px'}}/>
+        <>
+            <div className="quiz-steps">
+                <div className="progress" style={{width: '100%', backgroundColor: '#e0e0e0'}}>
+                    <div style={{width: `${progress}%`, backgroundColor: '#000000', height: '2px'}}/>
+                </div>
+                {quizData.map((_, index) => renderStep(index))}
             </div>
-            {renderStep()}
-        </div>
-    );
+            <div className="buttons">
+                {parseInt(stepNumber) === 1 &&
+                    <button className="button button-bordered" onClick={addPet} disabled={quizData.length >= 4}>+ Add
+                        Cat</button>}
+                {parseInt(stepNumber) > 1 &&
+                    <button className="button button-bordered" onClick={prevStep}>Back</button>}
+                {parseInt(stepNumber) < 6 && <button onClick={nextStep} disabled={isNextDisabled()}>Next</button>}
+                {parseInt(stepNumber) === 6 && <button onClick={submitQuiz} disabled={isNextDisabled()}>Submit</button>}
+            </div>
+        </>
+
+    )
+        ;
 };
 
 export default QuizSteps;
