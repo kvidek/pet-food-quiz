@@ -163,17 +163,18 @@ const Results = () => {
                                     );
                                 })}
                             </ul>
-                            <div className="cart-total">
-                                <p>Order total: <b>
-                                    {products.reduce((acc, product) => acc + product.variants.edges[0]?.node.priceV2.amount * quantities[product.id], 0).toFixed(2)}
-                                    {products[0].variants.edges[0]?.node.priceV2.currencyCode}
-                                </b></p>
-
-                            </div>
                         </>
                     ) : (
                         <p>Loading recommended products...</p>
                     )}
+
+                </div>
+
+                <div className="cart-total">
+                    <p>Order total: <b>
+                        {products.reduce((acc, product) => acc + product.variants.edges[0]?.node.priceV2.amount * quantities[product.id], 0).toFixed(2)}
+                        {products[0].variants.edges[0]?.node.priceV2.currencyCode}
+                    </b></p>
 
                 </div>
 
