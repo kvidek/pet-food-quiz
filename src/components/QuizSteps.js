@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
+import styles from '../scss/QuizSteps.module.scss';
 
 const QuizSteps = () => {
     const {stepNumber} = useParams(); // Get the current step from URL
@@ -53,7 +54,7 @@ const QuizSteps = () => {
     const catName = quizData.name || 'your cat';
 
     const totalSteps = 6;
-    const progress = (parseInt(stepNumber) / totalSteps) * 100;
+    const progress = (parseInt(stepNumber - 1) / totalSteps) * 100;
 
     // Validation to enable/disable "Next" button
     const isNextDisabled = () => {
@@ -82,8 +83,8 @@ const QuizSteps = () => {
         switch (parseInt(stepNumber)) {
             case 1:
                 return (
-                    <div className="step">
-                        <div className="header">
+                    <div className={styles.step}>
+                        <div className={styles.header}>
                             <p>Step 1</p>
                             <h2>Your Cat's Name</h2>
                         </div>
@@ -101,8 +102,8 @@ const QuizSteps = () => {
                 );
             case 2:
                 return (
-                    <div className="step">
-                        <div className="header">
+                    <div className={styles.step}>
+                        <div className={styles.header}>
                             <p>Step 2</p>
                             <h2>How old is {catName}?</h2>
                         </div>
@@ -121,8 +122,8 @@ const QuizSteps = () => {
                 );
             case 3:
                 return (
-                    <div className="step">
-                        <div className="header">
+                    <div className={styles.step}>
+                        <div className={styles.header}>
                             <p>Step 3</p>
                             <h2>What is {catName}'s breed?</h2>
                         </div>
@@ -159,8 +160,8 @@ const QuizSteps = () => {
                 );
             case 4:
                 return (
-                    <div className="step">
-                        <div className="header">
+                    <div className={styles.step}>
+                        <div className={styles.header}>
                             <p>Step 4</p>
                             <h2>What is {catName}'s weight (kg)?</h2>
                         </div>
@@ -179,9 +180,9 @@ const QuizSteps = () => {
                 );
             case 5:
                 return (
-                    <div className="step">
+                    <div className={styles.step}>
 
-                        <div className="header">
+                        <div className={styles.header}>
                             <p>Step 5</p>
                             <h2>Does {catName} have any allergies?</h2>
                         </div>
@@ -200,9 +201,9 @@ const QuizSteps = () => {
                 );
             case 6:
                 return (
-                    <div className="step">
+                    <div className={styles.step}>
 
-                        <div className="header">
+                        <div className={styles.header}>
                             <p>Step 6</p>
                             <h2>What are {catName}'s food preferences?</h2>
                         </div>
@@ -225,9 +226,9 @@ const QuizSteps = () => {
     };
 
     return (
-        <div className="quiz-steps">
-            <div className="progress" style={{width: '100%', backgroundColor: '#e0e0e0'}}>
-                <div style={{width: `${progress}%`, backgroundColor: '#000000', height: '2px'}}/>
+        <div className={styles.quizSteps}>
+            <div className={styles.progress} style={{width: '100%', backgroundColor: '#e0e0e0'}}>
+                <div className={styles.progressLine} style={{width: `${progress}%`, backgroundColor: '#000000', height: '2px'}}/>
             </div>
             {renderStep()}
         </div>

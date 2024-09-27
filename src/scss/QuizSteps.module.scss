@@ -1,0 +1,36 @@
+.quizSteps {
+    text-align: center;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0 auto;
+    max-width: 760px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid lightgray;
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+.header {
+    position: relative;
+
+    p {
+        text-transform: uppercase;
+        font-size: small;
+    }
+}
+
+.progress {
+    max-width: 760px;
+    margin: 0 auto;
+    margin-bottom: 30px;
+}
+
+.progressLine {
+    transition: all 0.3s ease-out;
+}

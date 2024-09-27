@@ -2,6 +2,8 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {fetchProducts} from '../shopifyService';
+import cn from 'classnames';
+import styles from '../scss/Results.module.scss';
 
 const Results = () => {
     const navigate = useNavigate();
@@ -111,25 +113,25 @@ const Results = () => {
 
     return (
         <div>
-            <div className="quiz-results">
-                <div className="quiz-results-group">
+            <div className={styles.quizResults}>
+                <div className={styles.quizResultsGroup}>
                     <h2>Recommended Food for {catName}</h2>
 
                     {products.length > 0 ? (
                         <>
-                            <ul className="product-list">
+                            <ul className={styles.productList}>
                                 {products.map((product) => {
 
                                     const productPrice = product.variants.edges[0]?.node?.priceV2?.amount;
                                     const totalPerProduct = product.variants?.edges[0]?.node?.priceV2?.amount * quantities[product.id] || 0;
 
                                     return (
-                                        <li className="product" key={product.id}>
-                                            <div className="product-left">
+                                        <li className={styles.product} key={product.id}>
+                                            <div className={styles.productLeft}>
                                                 <img src={product.images.edges[0]?.node.src} alt={product.title}/>
                                             </div>
-                                            <div className="product-center">
-                                                <h2>{product.title}</h2>
+                                            <div className={styles.productCenter}>
+                                                <h3>{product.title}</h3>
                                                 <p>{product.description}</p>
                                                 {product.variants?.edges.length > 0 ? (
                                                     <p>
@@ -139,10 +141,10 @@ const Results = () => {
                                                     <p>No price available</p>
                                                 )}
                                             </div>
-                                            <div className="product-right">
-                                                <label className="quantity">
+                                            <div className={styles.productRight}>
+                                                <label className={styles.quantity}>
                                                     <span>Qty:</span>
-                                                    <div className="quantity-input">
+                                                    <div className={styles.quantityInput}>
                                                         <button className="button button-small"
                                                                 onClick={() => handleQuantityChange(product.id, quantities[product.id] - 1)}>-
                                                         </button>
@@ -165,12 +167,12 @@ const Results = () => {
                             </ul>
                         </>
                     ) : (
-                        <p>Loading recommended products...</p>
+                        <p className={styles.loading}>Loading recommended products...</p>
                     )}
 
                 </div>
 
-                <div className="cart-total">
+                <div className={styles.cartTotal}>
                     <p>Order total: <b>
                         {products.reduce((acc, product) => acc + (product.variants?.edges[0]?.node?.priceV2?.amount * quantities[product.id] || 0), 0).toFixed(2)}
                         {products[0]?.variants?.edges[0]?.node?.priceV2?.currencyCode}
@@ -178,13 +180,13 @@ const Results = () => {
 
                 </div>
 
-                <div className="buttons">
-                    <button className="button button-bordered" onClick={handleBack}>Back</button>
-                    <button className="button button-bordered" onClick={handleRestart}>Restart Quiz</button>
+                <div className={cn("buttons")}>
+                    <button className={cn("button button-bordered")} onClick={handleBack}>Back</button>
+                    <button className={cn("button button-bordered")} onClick={handleRestart}>Restart Quiz</button>
 
                     {/* Add all to cart button */}
                     {products.length > 0 && (
-                        <button onClick={handleAddToCart}>
+                        <button className={cn("button")} onClick={handleAddToCart}>
                             Complete order
                         </button>
                     )}
