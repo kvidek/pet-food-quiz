@@ -12,9 +12,9 @@ const buildGraphQLQueryString = (query) => {
 // src/shopifyService.js
 export const fetchProducts = async (query) => {
     try {
-        const queryString = buildGraphQLQueryString(query);
-        
-        console.log('queryString: ', queryString);
+        const queryTags = buildGraphQLQueryString(query);
+
+        console.log('queryTags: ', queryTags);
 
         const response = await fetch(`https://${shopifyDomain}/api/2024-01/graphql.json`, {
             method: 'POST',
@@ -25,7 +25,7 @@ export const fetchProducts = async (query) => {
             body: JSON.stringify({
                 query: `
           {
-            products(first: 50, query: "tag:${queryString}") {
+            products(first: 50, query: "tag:${queryTags}") {
               edges {
                 node {
                   id
@@ -43,6 +43,7 @@ export const fetchProducts = async (query) => {
                   variants(first: 1) {
                     edges {
                       node {
+                        id
                         priceV2 {
                           amount
                           currencyCode
