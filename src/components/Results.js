@@ -121,7 +121,7 @@ const Results = () => {
                                 {products.map((product) => {
 
                                     const productPrice = product.variants.edges[0]?.node?.priceV2?.amount;
-                                    const totalPerProduct = productPrice * quantities[product.id];
+                                    const totalPerProduct = product.variants?.edges[0]?.node?.priceV2?.amount * quantities[product.id] || 0;
 
                                     return (
                                         <li className="product" key={product.id}>
@@ -172,8 +172,8 @@ const Results = () => {
 
                 <div className="cart-total">
                     <p>Order total: <b>
-                        {products.reduce((acc, product) => acc + product.variants.edges[0]?.node.priceV2.amount * quantities[product.id], 0).toFixed(2)}
-                        {products[0].variants.edges[0]?.node.priceV2.currencyCode}
+                        {products.reduce((acc, product) => acc + (product.variants?.edges[0]?.node?.priceV2?.amount * quantities[product.id] || 0), 0).toFixed(2)}
+                        {products[0]?.variants?.edges[0]?.node?.priceV2?.currencyCode}
                     </b></p>
 
                 </div>
