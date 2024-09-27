@@ -31,13 +31,6 @@ const Results = () => {
         });
     };
 
-    const collectVariantIds = (petIndex) => {
-        return productsByPet[petIndex].map(product => ({
-            variantId: product.variants?.edges[0]?.node.id.split('/').pop(),
-            quantity: quantitiesByPet[petIndex][product.id]
-        }));
-    };
-
     const createCheckoutUrl = (variants) => {
         const baseUrl = 'https://67f1af-72.myshopify.com/cart';
         const variantsString = variants.map(({ variantId, quantity }) => `${variantId}:${quantity}`).join(',');
