@@ -1,186 +1,166 @@
-// src/components/Results.js
-import React, {useEffect, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {fetchProducts} from '../shopifyService';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { fetchProducts } from '../shopifyService';
 
 const Results = () => {
     const navigate = useNavigate();
-    const [products, setProducts] = useState([]);
-    const [catName, setCatName] = useState('');
-    const [quantities, setQuantities] = useState({});
+    const [productsByPet, setProductsByPet] = useState([]);
+    const [catNames, setCatNames] = useState([]);
+    const [quantitiesByPet, setQuantitiesByPet] = useState([]);
 
-    // Function to go back to the last step
     const handleBack = () => {
         navigate('/step/6');
     };
 
-    // Function to restart the quiz
     const handleRestart = () => {
         localStorage.removeItem('quizData');
         navigate('/step/1');
     };
 
-    // Function to handle quantity change
-    const handleQuantityChange = (productId, newQuantity) => {
+    const handleQuantityChange = (petIndex, productId, newQuantity) => {
         if (newQuantity < 1) {
             newQuantity = 1;
         }
-        setQuantities(prevQuantities => ({
-            ...prevQuantities,
-            [productId]: newQuantity
-        }));
+        setQuantitiesByPet(prevQuantities => {
+            const updatedQuantities = [...prevQuantities];
+            updatedQuantities[petIndex] = {
+                ...updatedQuantities[petIndex],
+                [productId]: newQuantity
+            };
+            return updatedQuantities;
+        });
     };
 
-    // Collect variant IDs and quantities
-    const collectVariantIds = () => {
-        return products.map(product => ({
-            variantId: product.variants.edges[0]?.node.id.split('/').pop(),
-            quantity: quantities[product.id]
-        }));
-    };
-
-    // Function to create the checkout URL
     const createCheckoutUrl = (variants) => {
         const baseUrl = 'https://67f1af-72.myshopify.com/cart';
-        const variantsString = variants.map(({variantId, quantity}) => `${variantId}:${quantity}`).join(',');
+        const variantsString = variants.map(({ variantId, quantity }) => `${variantId}:${quantity}`).join(',');
         return `${baseUrl}/${variantsString}`;
     };
 
-    // Handle adding to cart
     const handleAddToCart = () => {
-        const variants = collectVariantIds();
-        const checkoutUrl = createCheckoutUrl(variants);
-        window.open(checkoutUrl, '_blank'); // Open cart in new tab
+        const allVariants = productsByPet.flatMap((products, petIndex) =>
+            products.map(product => ({
+                variantId: product.variants?.edges[0]?.node.id.split('/').pop(),
+                quantity: quantitiesByPet[petIndex][product.id]
+            }))
+        );
+        const checkoutUrl = createCheckoutUrl(allVariants);
+        window.open(checkoutUrl, '_blank');
     };
 
     useEffect(() => {
-        // Load quiz data from localStorage
         const storedQuizData = localStorage.getItem('quizData');
-        const quizData = storedQuizData ? JSON.parse(storedQuizData) : {};
+        const quizData = storedQuizData ? JSON.parse(storedQuizData) : [];
 
-        // Set catName from quizData
-        setCatName(quizData.name || 'your cat');
+        const catNames = quizData.map(pet => pet.name || 'your cat');
+        setCatNames(catNames);
 
-        // Function to generate tags based on quizData
-        const generateTags = (quizData) => {
+        const generateTags = (pet) => {
             const tags = [];
-
-            if (quizData.age <= 1) {
+            if (pet.age <= 1) {
                 tags.push('kitten');
             } else {
                 tags.push('older cat');
             }
-
-            // Add more conditions as needed
             return tags;
         };
 
-        // Generate tags from quizData
-        const tags = generateTags(quizData);
+        const fetchProductsForPets = async () => {
+            const productsByPet = [];
+            const quantitiesByPet = [];
 
-        // Build a query based on the tags
-        const buildProductQuery = (tags) => {
-            const query = [];
+            for (const pet of quizData) {
+                const tags = generateTags(pet);
+                const productQuery = tags.map(tag => ({ tag }));
+                const fetchedProducts = await fetchProducts(productQuery);
+                productsByPet.push(fetchedProducts);
 
-            if (tags && tags.length > 0) {
-                tags.forEach(tag => {
-                    query.push({tag});
-                });
+                const initialQuantities = fetchedProducts.reduce((acc, product) => ({
+                    ...acc,
+                    [product.id]: pet.weight <= 2 ? 1 : 3
+                }), {});
+                quantitiesByPet.push(initialQuantities);
             }
 
-            return query;
+            setProductsByPet(productsByPet);
+            setQuantitiesByPet(quantitiesByPet);
         };
 
-        // Fetch products from Shopify
-        const productQuery = buildProductQuery(tags);
-
-        console.log(productQuery);
-        console.log(storedQuizData);
-
-        fetchProducts(productQuery).then(fetchedProducts => {
-            setProducts(fetchedProducts);
-
-            // Set initial quantities for each product (default to 1)
-            const initialQuantities = fetchedProducts.reduce((acc, product) => ({
-                ...acc,
-                [product.id]: quizData.weight <= 2 ? 1 : 3
-            }), {});
-            setQuantities(initialQuantities);
-        });
+        fetchProductsForPets();
     }, []);
 
     return (
         <div>
             <div className="quiz-results">
-                <h2>Recommended Food for {catName}</h2>
+                {catNames.map((catName, petIndex) => (
+                    <div className="quiz-results-group" key={petIndex}>
+                        <h2>Recommended Food for {catName}</h2>
+                        {productsByPet[petIndex]?.length > 0 ? (
+                            <ul className="product-list">
+                                {productsByPet[petIndex].map((product) => {
+                                    const productPrice = product.variants?.edges[0]?.node?.priceV2?.amount;
+                                    const totalPerProduct = productPrice * quantitiesByPet[petIndex][product.id];
 
-                {products.length > 0 ? (
-                    <>
-                        <ul className="product-list">
-                            {products.map((product) => {
-
-                                const productPrice = product.variants.edges[0]?.node?.priceV2?.amount;
-                                const totalPerProduct = productPrice * quantities[product.id];
-
-                                return (
-                                    <li className="product" key={product.id}>
-                                        <div className="product-left">
-                                            <img src={product.images.edges[0]?.node.src} alt={product.title}/>
-                                        </div>
-                                        <div className="product-center">
-                                            <h2>{product.title}</h2>
-                                            <p>{product.description}</p>
-                                            {product.variants?.edges.length > 0 ? (
-                                                <p>
-                                                    Price: <b>{productPrice} {product.variants.edges[0]?.node?.priceV2?.currencyCode}</b>
+                                    return (
+                                        <li className="product" key={product.id}>
+                                            <div className="product-left">
+                                                <img src={product.images.edges[0]?.node.src} alt={product.title}/>
+                                            </div>
+                                            <div className="product-center">
+                                                <h2>{product.title}</h2>
+                                                <p>{product.description}</p>
+                                                {product.variants?.edges.length > 0 ? (
+                                                    <p>
+                                                        Price: <b>{productPrice} {product.variants.edges[0]?.node?.priceV2?.currencyCode}</b>
+                                                    </p>
+                                                ) : (
+                                                    <p>No price available</p>
+                                                )}
+                                            </div>
+                                            <div className="product-right">
+                                                <label className="quantity">
+                                                    <span>Qty:</span>
+                                                    <div className="quantity-input">
+                                                        <button className="button button-small"
+                                                                onClick={() => handleQuantityChange(petIndex, product.id, quantitiesByPet[petIndex][product.id] - 1)}>-
+                                                        </button>
+                                                        <input
+                                                            type="text"
+                                                            value={quantitiesByPet[petIndex][product.id]}
+                                                            onChange={(e) => handleQuantityChange(petIndex, product.id, Number(e.target.value))}
+                                                        />
+                                                        <button className="button button-small"
+                                                                onClick={() => handleQuantityChange(petIndex, product.id, quantitiesByPet[petIndex][product.id] + 1)}>+
+                                                        </button>
+                                                    </div>
+                                                </label>
+                                                <p>Total: <b>{totalPerProduct?.toFixed(2)} {product.variants?.edges[0]?.node.priceV2.currencyCode}</b>
                                                 </p>
-                                            ) : (
-                                                <p>No price available</p>
-                                            )}
-                                        </div>
-                                        <div className="product-right">
-                                            <label className="quantity">
-                                                <span>Qty:</span>
-                                                <div className="quantity-input">
-                                                    <button className="button button-small"
-                                                            onClick={() => handleQuantityChange(product.id, quantities[product.id] - 1)}>-
-                                                    </button>
-                                                    <input
-                                                        type="text"
-                                                        value={quantities[product.id]}
-                                                        onChange={(e) => handleQuantityChange(product.id, Number(e.target.value))}
-                                                    />
-                                                    <button className="button button-small"
-                                                            onClick={() => handleQuantityChange(product.id, quantities[product.id] + 1)}>+
-                                                    </button>
-                                                </div>
-                                            </label>
-                                            <p>Total: <b>{totalPerProduct.toFixed(2)} {product.variants.edges[0]?.node.priceV2.currencyCode}</b>
-                                            </p>
-                                        </div>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                        <div className="cart-total">
-                            <p>Order total: <b>
-                                {products.reduce((acc, product) => acc + product.variants.edges[0]?.node.priceV2.amount * quantities[product.id], 0).toFixed(2)}
-                                {products[0].variants.edges[0]?.node.priceV2.currencyCode}
-                            </b></p>
-
-                        </div>
-                    </>
-                ) : (
-                    <p>Loading recommended products...</p>
-                )}
-
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        ) : (
+                            <p>Loading recommended products...</p>
+                        )}
+                    </div>
+                ))}
+                <div className="cart-total">
+                    <p>Order total: <b>
+                        {productsByPet.reduce((total, products, petIndex) => {
+                            return total + products.reduce((acc, product) => {
+                                return acc + (product.variants?.edges[0]?.node.priceV2.amount * quantitiesByPet[petIndex][product.id] || 0);
+                            }, 0);
+                        }, 0).toFixed(2)}
+                        {productsByPet[0]?.[0]?.variants?.edges[0]?.node.priceV2.currencyCode}
+                    </b></p>
+                </div>
                 <div className="buttons">
                     <button className="button button-bordered" onClick={handleBack}>Back</button>
                     <button className="button button-bordered" onClick={handleRestart}>Restart Quiz</button>
-
-                    {/* Add all to cart button */}
-                    {products.length > 0 && (
-                        <button onClick={handleAddToCart}>
+                    {productsByPet.length > 0 && (
+                        <button onClick={() => handleAddToCart(0)}>
                             Complete order
                         </button>
                     )}
