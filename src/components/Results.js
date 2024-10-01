@@ -32,7 +32,7 @@ const Results = () => {
     };
 
     const createCheckoutUrl = (variants) => {
-        const baseUrl = 'https://67f1af-72.myshopify.com/cart';
+        const baseUrl = 'https://kvidek-test-store.myshopify.com/cart';
         const variantsString = variants.map(({ variantId, quantity }) => `${variantId}:${quantity}`).join(',');
         return `${baseUrl}/${variantsString}`;
     };
