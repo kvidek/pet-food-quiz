@@ -1,7 +1,7 @@
 // src/shopifyService.js
 
-const shopifyDomain = '67f1af-72.myshopify.com'; // Replace with your Shopify store's domain
-const storefrontAccessToken = '1ffcdb0a1355b0cdddd1558499c95278'; // Replace with your actual API token
+const shopifyDomain = 'kvidek-test-store.myshopify.com'; // Replace with your Shopify store's domain
+const storefrontAccessToken = '17bea66c5b398d5e076398d1c2a0e505'; // Replace with your actual API token
 
 // Function to convert query array to GraphQL filter string
 const buildGraphQLQueryString = (query) => {
